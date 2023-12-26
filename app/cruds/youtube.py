@@ -1,0 +1,83 @@
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
+import base64
+import datetime
+
+from app.models import youtube as y_model
+from app.schemas import youtube as y_schema
+
+
+# def get_user(db: Session, user_id: int):
+#     user = db.query(y_model.UserMaster).filter(
+#         y_model.UserMaster.id == user_id).one()
+#     return user
+
+
+def get_subscribe_channels(db: Session, channel_id: int, limit: int = 100):
+    query = db.query(y_model.SubscribeChannel).filter(
+        y_model.SubscribeChannel.channel_id == channel_id).limit(limit)
+    return query.all()
+
+
+def get_channel(db: Session, channel_id: int):
+    channel = db.query(y_model.ChannelMaster).filter(
+        y_model.ChannelMaster.id == channel_id).one()
+    return channel
+
+
+def auth_channel(db: Session, channel_id: int, email: str, passcode: str):
+    channel = db.query(y_model.ChannelMaster).filter(
+        y_model.ChannelMaster.id == channel_id).one()
+    return channel
+
+
+def get_movies(db: Session, channel_id: int = -1, word: str = "", janru_cd: int = -1,  limit: int = 100):
+    query = db.query(y_model.MovieMaster)
+    if (-1 < janru_cd):
+        query = db.query(y_model.MovieMaster).filter(
+            y_model.MovieInfo.janru_cd == janru_cd)
+    elif (word != ""):
+        query = db.query(y_model.MovieMaster).filter(
+            y_model.MovieInfo.title.contains(word))
+    elif (-1 < channel_id):
+        query = db.query(y_model.MovieMaster).filter(
+            y_model.MovieMaster.channel_id == channel_id)
+    return query.limit(limit).all()
+
+
+# def search_movies(db: Session, word: str = "", limit: int = 100):
+#     query = db.query(y_model.MovieMaster).filter(
+#         y_model.MovieInfo.title.contains(word)).limit(limit)
+#     return query.all()
+
+
+def get_movie(db: Session, movie_id: str):
+    movie = db.query(y_model.MovieMaster).filter(
+        y_model.MovieMaster.movie_id == movie_id).one()
+    return movie
+
+
+def get_my_history_movies(db: Session, channel_id: int, limit: int = 100):
+    query = db.query(y_model.MovieHistory).filter(
+        y_model.MovieHistory.channel_id == channel_id).order_by(desc(y_model.MovieHistory.latest_viewed_at)).limit(limit).all()
+    return query.all()
+
+# def create_movie(db: Session, movie, file):
+#     new_movie = y_model.Movie()
+#     new_movie.movie_id = movie["movie_id"]
+#     new_movie.janru_cd = 1
+#     new_movie.title = movie["title"]
+#     new_movie.description = movie["description"]
+#     new_movie.channel_id = movie["channel_id"]
+#     new_movie.created_at = datetime.datetime.now()
+#     new_movie.updated_at = datetime.datetime.now()
+#     new_movie.src = file
+#     db.add(new_movie)
+#     db.flush()
+
+#     new_movie_insight = y_model.MovieInsight()
+#     new_movie_insight.movie_id = new_movie.id
+#     db.add(new_movie_insight)
+#     db.commit()
+#     db.refresh(new_movie)
+#     return new_movie
