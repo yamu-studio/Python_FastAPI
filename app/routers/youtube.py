@@ -12,80 +12,63 @@ from app.cruds import youtube as y_crud
 router = APIRouter()
 
 
-# @router.get("/channels/", response_model=list[y_schemas.Channel])
-# def get_channels(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     channels = y_crud.get_channels(db, skip=skip, limit=limit)
-#     return channels
-
-
-# @router.get("/channels/{channel_id}", response_model=y_schemas.Channel)
-# def get_channel(channel_id: str, db: Session = Depends(get_db)):
-#     channel = y_crud.get_channel(db, channel_id=channel_id)
-#     return channel
-@router.get("/channels/{channel_id}")
-# @router.get("/channels/{channel_id}", response_model=y_schemas.Channel)
-def get_movie(channel_id: str, db: Session = Depends(get_db)):
-    try:
-        channel = y_crud.get_channel(db, channel_id=channel_id)
-        print(channel)
-        return {
-            "master": channel[0],
-            "info": channel[1],
-            "insight": channel[2]
-        }
-    except Exception:
-        raise HTTPException(status_code=404, detail="movie not found")
-
-
-@router.get("/movies/")
-def get_movies(janru_cd: int = -1, skip: int = -1, limit: int = 100, db: Session = Depends(get_db)):
-    movies = y_crud.get_movies(db, janru_cd=janru_cd, skip=skip, limit=limit)
+@router.get("/movies/", response_model=list[y_schemas.MovieMaster])
+def get_movies(janru_cd: int = -1, limit: int = 100, db: Session = Depends(get_db)):
+    movies = y_crud.get_movies(db, janru_cd=janru_cd, limit=limit)
     if not movies:
-        raise HTTPException(status_code=404, detail="Video not found")
-    else:
-        res_val = []
-        for movie in movies:
-            val = {
-                "master": movie[0],
-                "info": movie[1],
-                "insight": movie[2]
-            }
-            res_val.append(val)
+        raise HTTPException(status_code=404, detail="Movies not found")
+    return movies
 
-    return {"list": res_val}
+
+@router.get("/movies/history")
+def get_history_movies(channel_id: int, limit: int = 100, db: Session = Depends(get_db)):
+    movies = y_crud.get_my_history_movies(
+        db, channel_id=channel_id, limit=limit)
+    if not movies:
+        raise HTTPException(status_code=401, detail="Movie not found")
+    return movies
+
+
+@router.post("/movies/history/add")
+def add_history_movie(history_item: y_schemas.MovieHistoryRequest, db: Session = Depends(get_db)):
+    history = None
+    try:
+        history = y_crud.get_history_movie(
+            db, channel_id=history_item.channel_id, movie_id=history_item.movie_id)
+        # 対象を更新する
+        history = y_crud.update_history_movie(
+            db, history=history, view_second=history_item.view_second, is_watched=history_item.is_watched)
+    except Exception:
+        # 対象を作成する
+        history = y_crud.insert_history_movie(
+            db, movie_id=history_item.movie_id, view_second=history_item.view_second, channel_id=history_item.channel_id)
+    return history
 
 
 @router.get("/movies/{movie_id}", response_model=y_schemas.MovieMaster)
 def get_movie(movie_id: str, db: Session = Depends(get_db)):
     try:
         movie = y_crud.get_movie(db, movie_id=movie_id)
-        # channel = y_crud.get_channel(db, channel_id=movie[0].channel_id)
-        # print(movie)
-        # print(movie.info)
-        # print(movie.insight)
-        # print(channel)
-        # return {
-        #     "master": movie[0],
-        #     "info": movie[1],
-        #     "insight": movie[2],
-        #     # "channel": {
-        #     #     "master": channel[0],
-        #     #     "info": channel[1],
-        #     #     "insight": channel[2],
-        #     # }
-        # }
-        # aa = y_schemas.MovieInfos
-        # aa.master = movie[0]
-        # aa.info = movie[1]
-        # return {"title": 1}
         return movie
 
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=404, detail="movie not found")
-    # except MultipleResultsFound:  # type: ignore
-    #     raise HTTPException(
-    #         status_code=500, detail="Multiple videos found with the same ID")
+        # print(e)
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+
+@router.post("/comments/add")
+def add_comment(comment_item: y_schemas.AddCommentRequest, db: Session = Depends(get_db)):
+    comment = y_crud.insert_comment(db, text=comment_item.comment,
+                                    movie_id=comment_item.movie_id, channel_id=comment_item.channel_id)
+    return comment
+
+
+@router.get("/comments", response_model=list[y_schemas.CommentMaster])
+def get_comments(movie_id: int, db: Session = Depends(get_db)):
+    comments = y_crud.get_comments(db, movie_id=movie_id)
+    if not comments:
+        raise HTTPException(status_code=404, detail="Comments not found")
+    return comments
 
 
 # @router.post("/movie/upload")

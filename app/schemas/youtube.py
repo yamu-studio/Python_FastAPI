@@ -31,8 +31,7 @@ class ChannelInsight(BaseModel):
 
 
 class ChannelMaster(BaseModel):
-    # id: int
-    # movieID: str = Field(alias="movie_id")
+    id: int
     created_at: datetime
 
     info: ChannelInfo
@@ -43,8 +42,6 @@ class ChannelMaster(BaseModel):
 
 
 class MovieInfo(BaseModel):
-    # id: int
-    # movie_id: int
     title: str
     description: str
     thumbnail_path: str
@@ -60,11 +57,7 @@ class MovieInfo(BaseModel):
 
 
 class MovieInsight(BaseModel):
-    # id: int
-    # movie_id: int
-
     view_count: int
-    favorite_count: int
     comment_count: int
     good_count: int
     bad_count: int
@@ -74,13 +67,69 @@ class MovieInsight(BaseModel):
 
 
 class MovieMaster(BaseModel):
-    # id: int
+    id: int
     movieID: str = Field(alias="movie_id")
+    time_longth: int
     created_at: datetime
 
     info: MovieInfo
     insight: MovieInsight
     channel: ChannelMaster
+
+    class Config:
+        orm_mode = True
+
+
+class MovieHistoryRequest(BaseModel):
+    movie_id: int
+    view_second: int
+    channel_id: int
+    is_watched: bool = False
+
+    class Config:
+        orm_mode = True
+
+
+class CommentInfo(BaseModel):
+    comment: str
+
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        # fields = {'movie_id': 'movieID'}  # API 返却名を設定
+        orm_mode = True
+
+
+class CommentInsight(BaseModel):
+    view_count: int
+    good_count: int
+    bad_count: int
+
+    class Config:
+        orm_mode = True
+
+
+class CommentMaster(BaseModel):
+    id: int
+    movieID: int = Field(alias="movie_id")
+    # channelID: str = Field(alias="channel_id")
+    # replyCommentID: str = Field(alias="reply_comment_id")
+    created_at: datetime
+
+    info: CommentInfo
+    insight: CommentInsight
+    channel: ChannelMaster
+    # rep_comment:
+
+    class Config:
+        orm_mode = True
+
+
+class AddCommentRequest(BaseModel):
+    comment: str
+    movie_id: int
+    channel_id: int
 
     class Config:
         orm_mode = True
