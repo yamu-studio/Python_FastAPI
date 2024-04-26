@@ -1,4 +1,10 @@
-# Fast Api でサーバ側実装
+# やむぅのポートフォリオで使用するAPI(バックエンド)
+
+### 今回使用した言語・フレームワーク等
+
+<img src="https://skillicons.dev/icons?i=python,fastapi,mysql,git,github,vscode,docker" />
+
+### 起動方法
 
 Docker でデータベース(MySQL)を構築して、
 Python の Fast Api で CRUD 操作等を行う。
@@ -18,14 +24,13 @@ docker compose up -d
 docker compose start -d
 ```
 
-2. Api 環境の開始
+2. API 環境の開始
 
 ```
-conda activate yamu_portfolio_py12
 uvicorn app.main:app --reload
 ```
 
-3. API のド状況確認・ドキュメント
+3. API の状況確認・ドキュメント
 
 ```
 http://127.0.0.1:8000/docs
@@ -36,3 +41,7 @@ http://127.0.0.1:8000/docs
 ```
 docker compose stop
 ```
+
+### DB構成や内容
+
+[DBダンプ](https://github.com/yamu-studio/Python_FastAPI/blob/feature/youtube_api/db/ダンプ_yamuyamu.sql)をご確認ください。
